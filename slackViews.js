@@ -192,7 +192,7 @@ const bookCourse1 = async course_id => {
         text: {
           type: "mrkdwn",
           text:
-            "Before requesting approval to attend this course from your foundation manager, you must ask your line-of-business manager for approval to attend the course.\n\n $course_details"
+            "Before requesting approval from your Foundation manager to attend this course, you must gain your task manager's approval. By clicking the checkbox below, you are confirming that your task manager has agreed to give you the time and funding to attend this course. \n\n $course_details"
         }
       },
       {
@@ -205,7 +205,7 @@ const bookCourse1 = async course_id => {
               {
                 text: {
                   type: "plain_text",
-                  text: "I have my manager's approval to attend this course"
+                  text: "I have my task manager's approval to attend this course"
                 },
                 value: "approval",
                 description: {
