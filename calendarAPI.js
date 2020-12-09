@@ -3,6 +3,7 @@ const qs = require("qs");
 const apiUrl = "https://slack.com/api";
 const calendarUrl = "https://foundation-calendar.eu-gb.mybluemix.net/api";
 
+
 const getEPMemail = async user => {
   let url =
     "https://w3-services1.w3-969.ibm.com/myw3/unified-profile/v2/docs/instances/masterByEmail?email=johnny.murphy@ibm.com";
@@ -26,8 +27,13 @@ const getEPMemail = async user => {
 const requestApproval = async metadata => {
   const url =
     "https://foundation-calendar.eu-gb.mybluemix.net/api/event/requestApproval";
+    let requestBody = {
+      id: metadata.id,
+      email: metadata.email,
+      name: metadata.name
+  }
   const res = await axios
-    .put(url, metadata) //body)
+    .put(url, requestBody)
     .then(function(response) {
       // handle success
       //console.log(response.data);
@@ -44,8 +50,13 @@ const requestApproval = async metadata => {
 const rejectUser = async metadata => {
   const url =
     "https://foundation-calendar.eu-gb.mybluemix.net/api/event/rejectUser";
+  let requestBody = {
+      id: metadata.id,
+      email: metadata.email,
+      name: metadata.name
+  }
   const res = await axios
-    .put(url, metadata) //body)
+    .put(url, requestBody)
     .then(function(response) {
       // handle success
       //console.log(response.data);
@@ -62,8 +73,13 @@ const rejectUser = async metadata => {
 const ApproveUser = async metadata => {
   const url =
     "https://foundation-calendar.eu-gb.mybluemix.net/api/event/ApproveUser";
+    let requestBody = {
+      id: metadata.id,
+      email: metadata.email,
+      name: metadata.name
+  }
   const res = await axios
-    .put(url, metadata) //body)
+    .put(url, requestBody)
     .then(function(response) {
       // handle success
       //console.log(response.data);
@@ -77,15 +93,14 @@ const ApproveUser = async metadata => {
   return res;
 };
 
-const getMyCourses = async () => {
-  
-  //user email needs to be made dynamic
-  let email = {
-    email: "test.person2@ibm.com"
-  };
+const getMyCourses = async (userEmail) => {
+
+  let requestBody = {
+    email: userEmail
+  }
 
   const res = await axios
-    .post(`${calendarUrl}/event/myEvents`, email)
+    .post(`${calendarUrl}/event/myEvents`, requestBody)
     .then(function(response) {
       // handle success
       //console.log(response.data);
@@ -99,4 +114,4 @@ const getMyCourses = async () => {
   return res;
 };
 
-module.exports = { getEPMemail, requestApproval, rejectUser, ApproveUser, getMyCourses };
+module.exports = {requestApproval, rejectUser, ApproveUser, getMyCourses };

@@ -1,9 +1,11 @@
 const axios = require("axios");
 const qs = require("qs");
+const moment = require('moment');
 
 const apiUrl = "https://slack.com/api";
 const calendarUrl = "https://foundation-calendar.eu-gb.mybluemix.net/api";
 const calendarAPI = require("./calendarAPI");
+
 
 const requestResponse = async metadata => {
   // let blocks = {
@@ -161,7 +163,7 @@ const requestApproval = async metadata => {
   blocks = blocks.replace("$location", course.doc.location);
   blocks = blocks.replace("$price", course.doc.price);
   blocks = blocks.replace("$date", course.doc.start);
-  blocks = blocks.replace("$decription", course.doc.url);
+  blocks = blocks.replace("$description", course.doc.url);
   blocks = blocks.replace("$name", metadata.name);
   return blocks;
 };
@@ -304,14 +306,15 @@ const bookCourse2 = async user => {
   return JSON.stringify(modal);
 };
 
-const viewCourses = async user => {
+const viewCourses = async userEmail => {
+
   
   //calculate number of courses assiciated with user email
   let numberOfCoursesAttending;
   try {
-    var response = await calendarAPI.getMyCourses();
+    var response = await calendarAPI.getMyCourses(userEmail);
     numberOfCoursesAttending = response.data.rows.length;
-    console.log(numberOfCoursesAttending);
+    // console.log(numberOfCoursesAttending)
   } catch (error) {
     console.error(error);
   }
@@ -322,7 +325,7 @@ const viewCourses = async user => {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `:thumbsup:  *You are attending ${numberOfCoursesAttending} courses*`
+        text: `:thumbsup:  *You have ${numberOfCoursesAttending} course applications*`
       },
 
       accessory: {
@@ -348,25 +351,50 @@ const viewCourses = async user => {
   ];
 
   let courseBlockTemplate = [
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "$title\n$startTime — $endTime  |  $location" //\n $numSpaces spaces available"
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "Book course",
-          emoji: true
-        },
-        action_id: "book_course_1_<id>"
-      }
-    },
-    {
-      type: "divider"
-    }
+{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "*$title*  \n$description"
+			},
+			"accessory": {
+				"type": "button",
+				"text": {
+					"type": "plain_text",
+					"text": "Book course",
+					"emoji": true
+				},
+				"action_id": "book_course_1_<id>"
+			}
+		},
+		{
+			"type": "context",
+			"elements": [
+				{
+					"type": "mrkdwn",
+					"text": "$location"
+				},
+				{
+					"type": "mrkdwn",
+					"text": "|"
+				},
+				{
+					"type": "mrkdwn",
+					"text": "$date"
+				},
+        {
+					"type": "mrkdwn",
+					"text": "|"
+				},
+				{
+					"type": "mrkdwn",
+					"text": "$startTime  -  $endTime"
+				}
+			]
+		},
+		{
+			"type": "divider"
+		}
   ];
 
   // Calendar API call
@@ -388,7 +416,7 @@ const viewCourses = async user => {
   //console.log(res);
   var courses = res.data.rows;
   let len = courses.length;
-  var i, course, courseBlock, text;
+  var i, course, courseBlock, text, locationText, timeText, dateText
   // for each course in the list of courses
   for (i = 0; i < len; i++) {
     course = courses[i].doc;
@@ -399,18 +427,37 @@ const viewCourses = async user => {
     courseBlock = JSON.parse(JSON.stringify(courseBlockTemplate)); // use lodash? const lodashClonedeep = require("lodash.clonedeep");
     // update the tmeplate with the course details
     text = courseBlock[0].text.text;
-    text = text.replace("$title", course.title);
-    text = text.replace("$startTime", course.startTime);
-    text = text.replace("$endTime", course.endTime);
-    text = text.replace("$location", course.location);
+    locationText = courseBlock[1].elements[0].text
+    timeText = courseBlock[1].elements[4].text
+    dateText = courseBlock[1].elements[2].text
+    
+    //converts ISO date format to string using moment js
+    let courseDate = moment(course.start).format('dddd, ll')
+    console.log(courseDate)
+    
+    text = text.replace("$title", course.title);  
+    text = text.replace("$description", course.desc);
+    locationText = locationText.replace("$location", course.location);
+    dateText = dateText.replace("$date", courseDate);
+    timeText = timeText.replace("$startTime", course.startTime);
+    timeText = timeText.replace("$endTime", course.endTime);
+    
+  
     //text = text.replace("$numSpaces", "?");
+    
+    
     courseBlock[0].text.text = text;
+    courseBlock[1].elements[0].text = locationText;
+    courseBlock[1].elements[4].text = timeText;
+    courseBlock[1].elements[2].text = dateText
+  
     courseBlock[0].accessory.action_id = courseBlock[0].accessory.action_id.replace(
       "<id>",
       course._id
     );
+    
     // courseBlock[0].accessory.options[1].value = courseBlock[0].accessory.options[1].value.replace(
-    //   "<title>",
+    //   "$title",
     //   course.title
     // );
     //console.log(courseBlock);
@@ -451,53 +498,42 @@ const myCourses = async user => {
       text: {
         type: "mrkdwn",
         text:
-          "*<title>* (<attendingStatus>) \n*Get proper agile proper quick.* A 5-hour course on super agility and all the good stuff."
+          "*$title*   ($attendingStatus) \n$description"
       },
-      accessory: {
-        type: "image",
-        image_url:
-          "https://miro.medium.com/max/700/1*qXFGbWzWpd00LHVJYWsVJg.png",
-        alt_text: "Airstream Suite"
-      }
     },
     {
       type: "context",
       elements: [
         {
           type: "mrkdwn",
-          text: "<location>"
+          text: "$location"
         },
         {
           type: "mrkdwn",
           text: "|"
         },
+  				{
+					"type": "mrkdwn",
+					"text": "$date"
+				},
         {
-          type: "mrkdwn",
-          text: "<startTime>  -  <endTime>"
-        }
+					"type": "mrkdwn",
+					"text": "|"
+				},
+				{
+					"type": "mrkdwn",
+					"text": "$startTime  -  $endTime"
+				}
       ]
     },
-    // {
-    //   type: "actions",
-    //   elements: [
-    //     {
-    //       type: "button",
-    //       text: {
-    //         type: "plain_text",
-    //         text: "Cancel",
-    //         emoji: true
-    //       },
-    //       value: "click_me_123"
-    //     }
-    //   ]
-    // },
     {
       type: "divider"
     }
   ];
 
+  //creating request body
   let email = {
-    email: "test.person2@ibm.com"
+    email: user.user.email
   };
 
   const res = await axios
@@ -522,7 +558,9 @@ const myCourses = async user => {
     locationText,
     timeText,
     currentStatus,
-    statusText;
+    statusText,
+    descriptionText,
+    dateText
   // for each course in the list of courses
   for (i = 0; i < len; i++) {
     course = courses[i];
@@ -537,7 +575,14 @@ const myCourses = async user => {
     const getAttendingStatus = () => {
       if (course.currentStatus == "Awaiting approval") {
         return (currentStatus = "Awaiting Approval :hourglass_flowing_sand:");
-      } else {
+      } 
+      else if (course.currentStatus == "Rejected") {
+        return (currentStatus = "Attendance Denied :x:");
+      }
+      else if (course.currentStatus == "On Waitlist") {
+        return (currentStatus = "On Waiting List :stopwatch:");
+      }
+      else{
         return (currentStatus = "Attendance Approved :heavy_check_mark:");
       }
     };
@@ -545,23 +590,31 @@ const myCourses = async user => {
     getAttendingStatus();
 
     titleText = courseBlock[0].text.text;
+    descriptionText = courseBlock[0].text.text
     locationText = courseBlock[1].elements[0].text;
-    timeText = courseBlock[1].elements[2].text;
+    timeText = courseBlock[1].elements[4].text;
     statusText = courseBlock[0].text.text;
+    dateText = courseBlock[1].elements[2].text
+    
+    //converts ISO date format to string using moment js
+    let courseDate = moment(course.start).format('dddd, ll')
+    console.log(courseDate)
+    
 
-    // console.log(titleText)
+    titleText = titleText.replace("$title", course.doc.title);
+    titleText = titleText.replace("$attendingStatus", currentStatus);
+    titleText = titleText.replace("$description", course.doc.desc)
+    locationText = locationText.replace("$location", course.doc.location);
+    dateText = dateText.replace("$date", courseDate);
+    timeText = timeText.replace("$startTime", course.doc.startTime);
+    timeText = timeText.replace("$endTime", course.doc.endTime);
 
-    titleText = titleText.replace("<title>", course.doc.title);
-    titleText = titleText.replace("<attendingStatus>", currentStatus);
-    locationText = locationText.replace("<location>", course.doc.location);
-    timeText = timeText.replace("<startTime>", course.doc.startTime);
-    timeText = timeText.replace("<endTime>", course.doc.endTime);
-
-    // text = text.replace("<location>", course.location);
+    // text = text.replace("$location", course.location);
     // text = text.replace("<num spaces>", "?");
     courseBlock[0].text.text = titleText;
     courseBlock[1].elements[0].text = locationText;
-    courseBlock[1].elements[2].text = timeText;
+    courseBlock[1].elements[4].text = timeText;
+    courseBlock[1].elements[2].text = dateText
     // courseBlock[0].text.text = statusText;
 
     // courseBlock[0].accessory.action_id = courseBlock[0].accessory.action_id.replace(

@@ -1,6 +1,6 @@
 const { App } = require("@slack/bolt");
 const axios = require("axios");
-//const store = require("./store");
+const foundation_managers = require("./foundation_managers");
 const calendarAPI = require("./calendarAPI");
 const slackViews = require("./slackViews");
 
@@ -9,14 +9,24 @@ const app = new App({
   token: process.env.SLACK_BOT_TOKEN
 });
 
+let currentUser = {
+  email: "",
+  name: ""
+};
+
 // When app home home opened
-app.event("app_home_opened", async ({ event, context }) => {
+app.event("app_home_opened", async ({ body, event, context }) => {
   console.log("app home");
   // set global variable with list of courses
   global.courses = [];
+
   try {
-    //let user = event.user;
-    var view = await slackViews.viewCourses(event.user);
+    const res = await app.client.users.info({
+      token: context.botToken,
+      user: event.user
+    });
+
+    var view = await slackViews.viewCourses(res.user.profile.email);
     view = JSON.parse(view);
     /* view.publish is the method that your app uses to push a view to the Home tab */
     const result = await app.client.views.publish({
@@ -30,12 +40,40 @@ app.event("app_home_opened", async ({ event, context }) => {
   } catch (error) {
     console.error(error);
   }
+
+  //get user email to store as global variable
+  // try {
+  //   const res = await app.client.users.info({
+  //     token: context.botToken,
+  //     user: event.user
+  //     // user: body.user.id
+  //   });
+  //   //add name and email to Slack's user object to be used in request
+  //   return (currentUser.email = res.user.profile.email);
+  //   // console.log(body.user)
+  // } catch (error) {
+  //   console.error(error);
+  // }
 });
 
-// Opens modal showing user's courses 
-app.action("view_my_courses", async ({ body, ack, say }) => {
+// Opens modal showing user the courses they are attending and awaiting approval
+app.action("view_my_courses", async ({ body, ack, say, context }) => {
   await ack();
-  
+
+  //get user email and full name from Slack workspace
+  try {
+    const result = await app.client.users.info({
+      token: context.botToken,
+      user: body.user.id
+    });
+    //add name and email to Slack's user object to be used in request
+    body.user.email = result.user.profile.email;
+    body.user.real_name = result.user.profile.real_name;
+    // console.log(body.user)
+  } catch (error) {
+    console.error(error);
+  }
+
   try {
     var view = await slackViews.myCourses(body);
     // replace course name?
@@ -61,7 +99,7 @@ app.action(/book_course_1*/, async ({ body, ack, say }) => {
     // Acknowledge the action
     await ack();
     //console.log("book course");
-    console.log(body["actions"][0]["action_id"]); // 'book_course_<id>'
+    //console.log(body["actions"][0]["action_id"]); // 'book_course_<id>'
     let course_id = body["actions"][0]["action_id"].replace(
       "book_course_1_",
       ""
@@ -72,7 +110,7 @@ app.action(/book_course_1*/, async ({ body, ack, say }) => {
     // replace course name?
     view = JSON.parse(view);
     view.private_metadata = course_id;
-    // console.log(view);
+    
     /* view.open is the method used to open a modal */
     const result = await app.client.views.open({
       trigger_id: body.trigger_id,
@@ -95,17 +133,13 @@ app.action("manager_approval", async ({ body, ack, say }) => {
   try {
     // Acknowledge the action
     await ack();
-    let course_id = body["actions"][0]["action_id"].replace(
-      "book_course_1_",
-      ""
-    );
-    course_id = String(course_id);
     // show course booking modal
-    var newView = await slackViews.bookCourse2(course_id);
-    newView  = JSON.parse(newView);
-    newView .private_metadata = course_id;
+    var newView = await slackViews.bookCourse2();
+    newView = JSON.parse(newView);
+    newView.private_metadata = body.view.private_metadata;
+    
     const result = await app.client.views.update({
-      view_id:body.view.id,
+      view_id: body.view.id,
       trigger_id: body.trigger_id,
       /* retrieves your xoxb token from env */
       token: process.env.SLACK_BOT_TOKEN,
@@ -113,11 +147,11 @@ app.action("manager_approval", async ({ body, ack, say }) => {
       user_id: body.user,
       clear_on_close: true,
       /* the view object that appears in the app home*/
-      view: newView 
+      view: newView
     });
     //console.log(result);
   } catch (error) {
-    console.error(error);
+    //console.error(error);
   }
 });
 
@@ -139,15 +173,14 @@ app.view("course_application_modal", async ({ ack, body, view, context }) => {
     body.user.real_name = result.user.profile.real_name;
     //console.log(result["user"]["name"])
   } catch (error) {
-    console.error(error);
+    //console.log(error);
   }
 
   const metadata = {
     id: course_id,
     name: body.user.real_name,
     email: body.user.email,
-    user: body.user,
-    user_id: body.user.id
+    user: body.user
   };
   // API add to waitlist
   // Calendar API call - user.name, user.id, user.email
@@ -156,10 +189,9 @@ app.view("course_application_modal", async ({ ack, body, view, context }) => {
     res = await calendarAPI.requestApproval(metadata);
     //return res;
   } catch (error) {
-    //console.error(error);
-    console.log("approval already requested");
+    console.log(error);
+    //console.log("approval already requested");
   }
-  //console.log(res.text);
 
   // get EPM email from modal
   let values = view.state.values;
@@ -168,11 +200,8 @@ app.view("course_application_modal", async ({ ack, body, view, context }) => {
   v = Object.values(v);
   let EPMname = v[0]["selected_option"]["value"];
   // get email from name
-  const EPMtable = {
-    Zoe: "zoe.osorio@gmail.com",
-    Tristan: "tristan.plet@ibm.com",
-    Johnny: "johnny.murphy@ibm.com"
-  };
+
+  const EPMtable = foundation_managers.table;
   const getEPMemail = state => EPMtable[state] || EPMname;
   let EPMemail = getEPMemail(EPMname);
 
@@ -214,12 +243,13 @@ app.action(/EPM_.*/, async ({ body, ack, say }) => {
     await ack();
     //console.log("EPM response");
     let metadata = body["actions"][0]["value"];
+    metadata=JSON.parse(metadata);
     // switch case
     switch (body["actions"][0]["action_id"]) {
       case "EPM_approve":
         // code block
         console.log("approve");
-        metadata.response="approved";
+        metadata.response = "approved";
         // API add to waitlist
         // Calendar API call - user.name, user.id, user.email
         var res;
@@ -235,7 +265,7 @@ app.action(/EPM_.*/, async ({ body, ack, say }) => {
       case "EPM_deny":
         // code block
         console.log("deny");
-        metadata.response="denied";
+        metadata.response = "denied";
         // API add to waitlist
         // Calendar API call - user.name, user.id, user.email
         var res;
@@ -246,23 +276,21 @@ app.action(/EPM_.*/, async ({ body, ack, say }) => {
           //console.error(error);
           console.log("user rejection failed");
         }
-
         await say("Request has been denied.");
         break;
       default:
       // code block
     }
-  // } catch (error) {
-  //   console.error(error);
-  
-  
-  // Send approval/rejection message to user
-    console.log(metadata);
+    // } catch (error) {
+    //   console.error(error);
+
+    // Send approval/rejection message to user
+    
     let blocks = await slackViews.requestResponse(metadata);
     blocks = JSON.parse(blocks);
     await app.client.chat.postMessage({
       token: app.token,
-      channel: metadata.user_id,
+      channel: metadata.user.id,
       blocks: blocks
     });
   } catch (error) {
