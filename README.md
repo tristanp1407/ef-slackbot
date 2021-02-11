@@ -4,14 +4,10 @@ Built with [Slack's Bolt Framework](https://slack.dev/bolt/tutorial/getting-star
 
 ---
 
-Based on tutorial at:
-[https://api.slack.com/tutorials/hello-world-bolt](https://api.slack.com/tutorials/hello-world-bolt)
-shows a welcome message when a user opens the "app home".
-
 ### Slack API & features used in the app
 
 - The [`app_home_opened`](https://api.slack.com/events/app_home_opened) event gets triggered when a user opens the bot's "app home" for the first time
-- The app uses the Bolt's `say` method to send a welcome message to the user
+- 
 
 ### Requirements
 
