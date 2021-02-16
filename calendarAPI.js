@@ -141,18 +141,12 @@ const allEvents = async a => {
 
 
 // version which formats date strings
-const getMyCourses = async userEmail => {
-
-  console.log(userEmail)
-  
+const getMyCourses = async userEmail => {  
   let res = await axios
     .post(`${calendarUrl}/event/myEvents`, userEmail)
     .then(function(res) {
       // format res
       res = formattedRes(res);
-      
-      console.log("calendarAPI:157   ",res.data.rows[0].doc.title)
-
       return res;
     })
     .catch(function(error) {

@@ -547,9 +547,9 @@ const homePage = async userEmail => {
   //calculate number of courses assiciated with user email
   let numberOfCoursesAttending;
   try {
-    var response = await calendarAPI.getMyCourses(userEmail);
+    let response = await calendarAPI.getMyCourses(userEmail);
     numberOfCoursesAttending = response.data.rows.length;
-    // console.log(numberOfCoursesAttending)
+    console.log("Slackviews 552:  ", numberOfCoursesAttending);
   } catch (error) {
     console.error(error);
   }
