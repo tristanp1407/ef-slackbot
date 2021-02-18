@@ -37,9 +37,10 @@ app.event('app_home_opened', ({ event, say }) => {
     store.addUser(user);
     
     say(`Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`);
-  } else {
-    say("Hi again! I'm sending a lot of messages at the moment but I'll be fixed soon!");
-  }
+  } 
+  // else {
+  //   //say("Hi again! I'm sending a lot of messages at the moment but I'll be fixed soon!");
+  // }
 });
 
 // When app home home opened

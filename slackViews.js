@@ -598,28 +598,28 @@ const homePage = async userEmail => {
         type: "mrkdwn",
         text: "*Available Courses*"
       }
-    },
-    {
-      type: "divider"
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "Click this button to apply to Wimbledon :tennis: "
-      },
-      accessory: {
-        type: "button",
-        text: {
-          type: "plain_text",
-          text: "Apply",
-          emoji: true
-        },
-        action_id: "wimbledon_1"
-      }
-    },
-    {
-      type: "divider"
+    // / },
+      // {
+      //   type: "divider"
+      // },
+      // {
+      //   type: "section",
+      //   text: {
+      //     type: "mrkdwn",
+      //     text: "Click this button to apply to Wimbledon :tennis: "
+      //   },
+      //   accessory: {
+      //     type: "button",
+      //     text: {
+      //       type: "plain_text",
+      //       text: "Apply",
+      //       emoji: true
+      //     },
+      //     action_id: "wimbledon_1"
+      //   }
+      // },
+      // {
+      //   type: "divider"
     }
   ];
 
