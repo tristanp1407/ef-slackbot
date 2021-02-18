@@ -1,5 +1,5 @@
 {
-  "name": "@slack/foundationbot-bolt",
+  "name": "@slack/booker-bee",
   "version": "2.2.0",
   "private": true,
   "description": "Slackbot for booking essential foundation courses, built with Slack Bolt ⚡️ SDK",
@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
-  "author": "Zoe Osorio, zoe.osorio@ibm.com",
+  "author": "TP",
   "license": "MIT",
   "dependencies": {
     "@slack/bolt": "^3.1.1",
