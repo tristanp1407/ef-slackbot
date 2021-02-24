@@ -130,7 +130,7 @@ const allEvents = async a => {
     })
     .catch(function(error) {
       // handle error
-      console.log(error);
+      //console.log(error);
       throw error;
     });
 
@@ -152,6 +152,7 @@ const getMyCourses = async userEmail => {
     .catch(function(error) {
       // handle error
       throw error;
+      console.log("getMyCourses  API fail")
     });
   
   // console.log("calendarAPI:161   ",res.data.rows)

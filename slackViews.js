@@ -69,6 +69,7 @@ const getCourseDetailBlock = async course_id => {
     ];
 
     blocks = JSON.stringify(blocks);
+
     // Calendar API call
     const res = await axios
       .post(`${calendarUrl}/allEvents`)
@@ -78,7 +79,7 @@ const getCourseDetailBlock = async course_id => {
       })
       .catch(function(error) {
         // handle error
-        console.log("events api call fail");
+        console.log("allEvents api call fail");
         throw error;
       });
     // .finally(function() {
@@ -378,7 +379,7 @@ const wimbledon1 = async user => {
         elements: [
           {
             type: "checkboxes",
-            action_id: "i_am_an_intern",
+            action_id: "wimbledon_checkbox_1",
             options: [
               {
                 text: {
@@ -543,11 +544,16 @@ const requestWimbledonApproval = async metadata => {
   }
 };
 
-const homePage = async userEmail => {
+const homePage = async user => {
   //calculate number of courses assiciated with user email
-  let numberOfCoursesAttending;
+  var numberOfCoursesAttending;
+  //creating request body
+  let email = {
+    email: user.profile.email
+  };
+
   try {
-    let response = await calendarAPI.getMyCourses(userEmail);
+    let response = await calendarAPI.getMyCourses(email);
     numberOfCoursesAttending = response.data.rows.length;
     console.log("Slackviews 552:  ", numberOfCoursesAttending);
   } catch (error) {
@@ -596,30 +602,30 @@ const homePage = async userEmail => {
       type: "section",
       text: {
         type: "mrkdwn",
+        text: "Click this button to apply to Wimbledon :tennis: "
+      },
+      accessory: {
+        type: "button",
+        text: {
+          type: "plain_text",
+          text: "Apply",
+          emoji: true
+        },
+        action_id: "wimbledon_1"
+      }
+    },
+    {
+      type: "divider"
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
         text: "*Available Courses*"
       }
-    // / },
-      // {
-      //   type: "divider"
-      // },
-      // {
-      //   type: "section",
-      //   text: {
-      //     type: "mrkdwn",
-      //     text: "Click this button to apply to Wimbledon :tennis: "
-      //   },
-      //   accessory: {
-      //     type: "button",
-      //     text: {
-      //       type: "plain_text",
-      //       text: "Apply",
-      //       emoji: true
-      //     },
-      //     action_id: "wimbledon_1"
-      //   }
-      // },
-      // {
-      //   type: "divider"
+    },
+    {
+      type: "divider"
     }
   ];
 
@@ -677,7 +683,12 @@ const homePage = async userEmail => {
     }
   ];
 
-  let res = await calendarAPI.allEvents("a");
+  var res;
+  try {
+    res = await calendarAPI.allEvents("a");
+  } catch (error) {
+    console.log("allEvents api funct fail");
+  }
 
   var courses = res.data.rows;
 
@@ -689,71 +700,78 @@ const homePage = async userEmail => {
   // for each course in the list of courses
   for (i = 0; i < len; i++) {
     course = courses[i].doc;
-    // create course blocks from the course block template and update with the values for the course
-    //const courseBlock = Array.from(courseBlockTemplate);
-    //var courseBlock=courseBlockTemplate.slice(0);
-    courseBlock = JSON.parse(JSON.stringify(courseBlockTemplate)); // use lodash? const lodashClonedeep = require("lodash.clonedeep");
-    // update the tmeplate with the course details
-    text = courseBlock[0].text.text;
-    locationText = courseBlock[2].elements[0].text;
-    timeText = courseBlock[2].elements[4].text;
-    dateText = courseBlock[2].elements[2].text;
-    linkText = courseBlock[1].text.text;
+    var re = new RegExp("/Wimbledon.*/.");
 
-    //     //converts ISO date format to string using moment js
-    //     let startDate = moment(course.start).format("DD/MM/YYYY");
-    //     let endDate = moment(course.end).format("DD/MM/YYYY");
+    // if not wimbledon course
+    if (!re.test(course.title)) {
+      // create course blocks from the course block template and update with the values for the course
+      //const courseBlock = Array.from(courseBlockTemplate);
+      //var courseBlock=courseBlockTemplate.slice(0);
+      courseBlock = JSON.parse(JSON.stringify(courseBlockTemplate)); // use lodash? const lodashClonedeep = require("lodash.clonedeep");
+      // update the tmeplate with the course details
+      text = courseBlock[0].text.text;
+      locationText = courseBlock[2].elements[0].text;
+      timeText = courseBlock[2].elements[4].text;
+      dateText = courseBlock[2].elements[2].text;
+      linkText = courseBlock[1].text.text;
 
-    //     const createDateString = () => {
-    //       if (startDate !== endDate) {
-    //         return (courseDate = startDate + " - " + endDate);
-    //       } else {
-    //         return (courseDate = startDate);
-    //       }
-    //     };
+      //     //converts ISO date format to string using moment js
+      //     let startDate = moment(course.start).format("DD/MM/YYYY");
+      //     let endDate = moment(course.end).format("DD/MM/YYYY");
 
-    //     createDateString();
+      //     const createDateString = () => {
+      //       if (startDate !== endDate) {
+      //         return (courseDate = startDate + " - " + endDate);
+      //       } else {
+      //         return (courseDate = startDate);
+      //       }
+      //     };
 
-    //     const renderLink = () => {
-    //       if (course.url == "") {
-    //         return (externalLink = " ");
-    //       } else {
-    //         return (externalLink = `Click <${course.url}|here> to read more.`);
-    //       }
-    //     };
+      //     createDateString();
 
-    //     renderLink();
+      //     const renderLink = () => {
+      //       if (course.url == "") {
+      //         return (externalLink = " ");
+      //       } else {
+      //         return (externalLink = `Click <${course.url}|here> to read more.`);
+      //       }
+      //     };
 
-    // console.log("externalLink: ",externalLink);
+      //     renderLink();
 
-    text = text.replace("$title", course.title);
-    text = text.replace("$description", course.desc);
-    locationText = locationText.replace("$location", course.location);
-    //dateText = dateText.replace("$date", courseDate);
-    dateText = dateText.replace("$date", course.courseDate);
-    timeText = timeText.replace("$startTime", course.startTime); //startTime
-    timeText = timeText.replace("$endTime", course.endTime);
-    linkText = linkText.replace("$externalLink", course.externalLink);
-    //linkText = linkText.replace("$externalLink", externalLink);
+      // console.log("externalLink: ",externalLink);
 
-    courseBlock[0].text.text = text;
-    courseBlock[2].elements[0].text = locationText;
-    courseBlock[2].elements[4].text = timeText;
-    courseBlock[2].elements[2].text = dateText;
-    courseBlock[1].text.text = linkText;
+      text = text.replace("$title", course.title);
+      text = text.replace("$description", course.desc);
+      locationText = locationText.replace("$location", course.location);
+      //dateText = dateText.replace("$date", courseDate);
+      dateText = dateText.replace("$date", course.courseDate);
+      timeText = timeText.replace("$startTime", course.startTime); //startTime
+      timeText = timeText.replace("$endTime", course.endTime);
+      linkText = linkText.replace("$externalLink", course.externalLink);
+      //linkText = linkText.replace("$externalLink", externalLink);
 
-    courseBlock[0].accessory.action_id = courseBlock[0].accessory.action_id.replace(
-      "<id>",
-      course._id
-    );
+      courseBlock[0].text.text = text;
+      courseBlock[2].elements[0].text = locationText;
+      courseBlock[2].elements[4].text = timeText;
+      courseBlock[2].elements[2].text = dateText;
+      courseBlock[1].text.text = linkText;
 
-    // courseBlock[0].accessory.options[1].value = courseBlock[0].accessory.options[1].value.replace(
-    //   "$title",
-    //   course.title
-    // );
-    //console.log(courseBlock);
-    // add the course block to our list of blocks
-    blocks = blocks.concat(courseBlock);
+      courseBlock[0].accessory.action_id = courseBlock[0].accessory.action_id.replace(
+        "<id>",
+        course._id
+      );
+
+      // courseBlock[0].accessory.options[1].value = courseBlock[0].accessory.options[1].value.replace(
+      //   "$title",
+      //   course.title
+      // );
+
+      // add the course block to our list of blocks
+      blocks = blocks.concat(courseBlock);
+    } else {
+      console.log(course.title);
+    }
   }
 
   let view = {
@@ -764,8 +782,8 @@ const homePage = async userEmail => {
     },
     blocks: blocks
   };
-  // return slack view and course list API response
-  return JSON.stringify(view);
+  // return slack view and number of courses attending
+  return { view: JSON.stringify(view), numCourses: numberOfCoursesAttending };
 };
 
 const myCourses = async user => {
@@ -837,6 +855,7 @@ const myCourses = async user => {
     var res = await calendarAPI.getMyCourses(email);
     // console.log(numberOfCoursesAttending)
   } catch (error) {
+    console.log("get courses API fail");
     console.error(error);
   }
 
@@ -856,8 +875,8 @@ const myCourses = async user => {
 
   var courses = res.data.rows;
 
-  console.log("slackViews:859    ",courses[0])
-  
+  console.log("slackViews:872    ", courses[0]);
+
   var len = courses.length;
   var i,
     course,
@@ -906,7 +925,6 @@ const myCourses = async user => {
     statusText = courseBlock[0].text.text;
     dateText = courseBlock[2].elements[2].text;
     linkText = courseBlock[1].text.text;
-
 
     titleText = titleText.replace("$title", course.title);
     titleText = titleText.replace("$attendingStatus", currentStatus);
