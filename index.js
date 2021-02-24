@@ -3,8 +3,7 @@ const axios = require("axios");
 const calendarAPI = require("./calendarAPI");
 const slackViews = require("./slackViews");
 const foundation_managers = require("./foundation_managers");
-const store = require('./store');
-
+const store = require("./store");
 
 const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -25,37 +24,38 @@ let currentUser = {
   name: ""
 };
 
-app.event('app_home_opened', ({ event, say }) => {  
-  // Look up the user from DB
-  let user = store.getUser(event.user);
-  
-  if(!user) {
-    user = {
-      user: event.user,
-      channel: event.channel
-    };
-    store.addUser(user);
-    
-    say(`Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`);
-  } 
-  // else {
-  //   //say("Hi again! I'm sending a lot of messages at the moment but I'll be fixed soon!");
-  // }
-});
+// app.event("app_home_opened", ({ event, say }) => {
+//   // Look up the user from DB
+//   let user = store.getUser(event.user);
+//   if (!user) {
+//     user = {
+//       user: event.user,
+//       channel: event.channel
+//     };
+//     store.addUser(user);
+
+//     say(
+//       `Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`
+//     );
+//   }
+//   // else {
+//   //   //say("Hi again! I'm sending a lot of messages at the moment but I'll be fixed soon!");
+//   // }
+// });
 
 // When app home home opened
-app.event("app_home_opened", async ({ body, event, context }) => {
-  // set global variable with list of courses
+app.event("app_home_opened", async ({ body, event, context,say }) => {
   console.log("app home opened");
-  global.courses = [];
+  
   try {
     const res = await app.client.users.info({
       token: context.botToken,
       user: event.user
     });
 
-    var view = await slackViews.homePage(res.user.profile.email);
-    view = JSON.parse(view);
+    var view = await slackViews.homePage(res.user); //res.user.profile.email
+    let newView = JSON.parse(view.view);
+    
     /* view.publish is the method that your app uses to push a view to the Home tab */
     const result = await app.client.views.publish({
       /* retrieves your xoxb token from context */
@@ -63,13 +63,19 @@ app.event("app_home_opened", async ({ body, event, context }) => {
       /* the user that opened your app's app home */
       user_id: event.user,
       /* the view object that appears in the app home*/
-      view: view
+      view: newView
     });
   } catch (error) {
     console.error(error);
   }
+  
+  // if user not attending any courses yet, introduce the app!    
+  if (view.numCourses == 0){    
+    console.log("greeting message sent");
+    await say(`Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`
+  );}
+    
 });
-
 
 // Listens to incoming messages
 app.message(/.*/, async ({ message, say }) => {
@@ -96,7 +102,6 @@ app.message(/.*/, async ({ message, say }) => {
     text: `Hey there <@${message.user}>!`
   });
 });
-
 
 // Opens modal showing user the courses they are attending and awaiting approval
 app.action("view_my_courses", async ({ body, ack, say, context }) => {
@@ -465,28 +470,39 @@ app.action("wimbledon_1", async ({ body, ack, say }) => {
   }
 });
 
-app.action("i_am_an_intern", async ({ body, ack, say }) => {
+app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
   try {
     // Acknowledge the action
     await ack();
-    console.log("i_am_an_intern");
+    console.log("wimbledon_checkbox");
 
-    var newView = await slackViews.wimbledon2(body.user);
-    newView = JSON.parse(newView);
+    // check view state, to see if all 3 checkboxes are checked!
+    let values = body.view.state.values;
+    //console.log(values);
+    // let v = Object.entries(values);
+    // v = v[0][1];
+    // v = Object.values(v);
+    // let manager_name = v[0]["selected_option"]["value"];
 
-    // show box link modal
-    /* view.open is the method used to open a modal */
-    const result = await app.client.views.update({
-      view_id: body.view.id,
-      trigger_id: body.trigger_id,
-      /* retrieves your xoxb token from env */
-      token: process.env.SLACK_BOT_TOKEN,
-      /* the user that opened your app's app home */
-      user_id: body.user,
-      clear_on_close: true,
-      /* the view object that appears in the app home*/
-      view: newView
-    });
+    // if all 3 checkboxes ticked, update view
+    if (1) {
+      var newView = await slackViews.wimbledon2(body.user);
+      newView = JSON.parse(newView);
+
+      // show box link modal
+      /* view.open is the method used to open a modal */
+      const result = await app.client.views.update({
+        view_id: body.view.id,
+        trigger_id: body.trigger_id,
+        /* retrieves your xoxb token from env */
+        token: process.env.SLACK_BOT_TOKEN,
+        /* the user that opened your app's app home */
+        user_id: body.user,
+        clear_on_close: true,
+        /* the view object that appears in the app home*/
+        view: newView
+      });
+    }
     //console.log(result);
   } catch (error) {
     //console.error(error);
@@ -504,7 +520,7 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
     // get selected manager from modal
     console.log(v);
     let manager_name = v[1][1]["manager_select"]["selected_option"]["value"];
-    
+
     // get user name and email
     try {
       const result = await app.client.users.info({
