@@ -389,7 +389,29 @@ const wimbledon1 = async user => {
                 value: "approval",
                 description: {
                   type: "plain_text",
-                  text: " "
+                  text: "Only interns can apply for this opportunity."
+                }
+              },
+              {
+                text: {
+                  type: "plain_text",
+                  text: "I have my task manager's approval"
+                },
+                value: "approval-02",
+                description: {
+                  type: "plain_text",
+                  text: "You need approval from your task manager to apply."
+                }
+              },
+              {
+                text: {
+                  type: "plain_text",
+                  text: "I have my foundation manager's approval"
+                },
+                value: "approval-03",
+                description: {
+                  type: "plain_text",
+                  text: "You need approval from your foundation manager to apply."
                 }
               }
             ]
@@ -562,11 +584,18 @@ const homePage = async user => {
 
   let blocks = [
     {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: "BookerBee the Course Concierge"
+      }
+    },
+    {
       type: "section",
       text: {
         type: "mrkdwn",
         text:
-          "*BookerBee the Course Concierge* \n\n\nThis Bot is for booking Essential Foundation courses which are for Foundation Apprentices and Graduates. Managers can also use the bot to approve and deny any booking requests from these early professionals."
+          "This Bot is for booking Essential Foundation courses which are for Foundation Apprentices and Graduates. Managers can also use the bot to approve and deny any booking requests from these early professionals."
       },
       accessory: {
         type: "image",
@@ -618,10 +647,10 @@ const homePage = async user => {
       type: "divider"
     },
     {
-      type: "section",
+      type: "header",
       text: {
-        type: "mrkdwn",
-        text: "*Available Courses*"
+        type: "plain_text",
+        text: "Available Courses"
       }
     },
     {
