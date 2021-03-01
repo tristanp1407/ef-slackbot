@@ -782,7 +782,7 @@ const homePage = async user => {
     },
     blocks: blocks
   };
-  // return slack view and number of courses attending
+  // return slack view and number of courses current
   return { view: JSON.stringify(view), numCourses: numberOfCoursesAttending };
 };
 
@@ -806,7 +806,7 @@ const myCourses = async user => {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "*$title*  \n$description"
+        text: "*$title* - $currentStatus \n$description"
       }
     },
     {
@@ -910,7 +910,7 @@ const myCourses = async user => {
       } else if (courses[i].currentStatus == "On Waitlist") {
         return (currentStatus = "On Waiting List  :stopwatch:");
       } else if (courses[i].currentStatus == "Attending") {
-        return (currentStatus = "Attendance Confirmed  :heavy_check_mark:");
+        return (currentStatus = "Attendance Confirmed  :white_check_mark:");
       } else {
         return (currentStatus = "Error: Attendance Unknown  :confused:");
       }
@@ -927,7 +927,7 @@ const myCourses = async user => {
     linkText = courseBlock[1].text.text;
 
     titleText = titleText.replace("$title", course.title);
-    titleText = titleText.replace("$attendingStatus", currentStatus);
+    titleText = titleText.replace("$currentStatus", currentStatus);
     titleText = titleText.replace("$description", course.desc);
     locationText = locationText.replace("$location", course.location);
     dateText = dateText.replace("$date", course.courseDate);
