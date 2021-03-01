@@ -470,6 +470,11 @@ app.action("wimbledon_1", async ({ body, ack, say }) => {
   }
 });
 
+// set a global variable to true when checkbox selcted
+app.action
+
+
+
 app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
   try {
     // Acknowledge the action
@@ -478,14 +483,17 @@ app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
 
     // check view state, to see if all 3 checkboxes are checked!
     let values = body.view.state.values;
-    //console.log(values);
+    let id_ = Object.keys(body.view.state.values).toString();
+    // console.log(id_);
+    //get state ID
+    let selectedOptions = values[id_].wimbledon_checkbox_1.selected_options.length;
     // let v = Object.entries(values);
     // v = v[0][1];
     // v = Object.values(v);
     // let manager_name = v[0]["selected_option"]["value"];
 
     // if all 3 checkboxes ticked, update view
-    if (1) {
+    if (selectedOptions === 3 ) {
       var newView = await slackViews.wimbledon2(body.user);
       newView = JSON.parse(newView);
 
