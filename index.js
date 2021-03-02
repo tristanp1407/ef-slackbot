@@ -479,7 +479,7 @@ app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
   try {
     // Acknowledge the action
     await ack();
-    console.log("wimbledon_checkbox");
+    // console.log("wimbledon_checkbox");
 
     // check view state, to see if all 3 checkboxes are checked!
     let values = body.view.state.values;
@@ -526,8 +526,8 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
     let v = Object.entries(values);
     let box_link = v[0][1]["box_link_input-action"]["value"];
     // get selected manager from modal
-    console.log(v);
-    let manager_name = v[1][1]["manager_select"]["selected_option"]["value"];
+    // console.log(v);
+    // let manager_name = v[1][1]["manager_select"]["selected_option"]["value"];
 
     // get user name and email
     try {
@@ -552,7 +552,7 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
       box_link: box_link
     };
 
-    //console.log(result);
+    console.log("index.js:555 ",metadata);
   } catch (error) {
     console.error(error);
   }

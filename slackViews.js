@@ -448,52 +448,52 @@ const wimbledon2 = async user => {
     }
   ];
 
-  let options = [];
-  for (const manager in foundation_managers.managers) {
-    let option = {
-      value: manager,
-      text: {
-        type: "plain_text",
-        text: manager,
-        emoji: true
-      }
-    };
-    options = options.concat(option);
-  }
+//   let options = [];
+//   for (const manager in foundation_managers.managers) {
+//     let option = {
+//       value: manager,
+//       text: {
+//         type: "plain_text",
+//         text: manager,
+//         emoji: true
+//       }
+//     };
+//     options = options.concat(option);
+//   }
 
-  let blocks1 = [
-    {
-      type: "divider"
-    },
-    {
-      type: "section",
-      text: {
-        type: "plain_text",
-        text:
-          "Select your Foundation Manager.\nWhen you submit this request, you will be added to the course waitlist and a message will be sent to your Foundation Manager requesting approval. \nWe'll let you know whether your Foundation Manager approves the request.",
-        emoji: true
-      }
-    },
-    {
-      type: "input",
-      element: {
-        type: "static_select",
-        action_id: "manager_select",
-        placeholder: {
-          type: "plain_text",
-          text: "Select an item",
-          emoji: true
-        },
-        options: options
-      },
-      label: {
-        type: "plain_text",
-        text: "Select your Foundation Manager from the dropdown list",
-        emoji: true
-      }
-    }
-  ];
-  blocks = blocks.concat(blocks1);
+  // let blocks1 = [
+  //   {
+  //     type: "divider"
+  //   },
+  //   {
+  //     type: "section",
+  //     text: {
+  //       type: "plain_text",
+  //       text:
+  //         "Enter your email address",
+  //       emoji: true
+  //     }
+  //   },
+  //   {
+  //     type: "input",
+  //     element: {
+  //       type: "static_select",
+  //       action_id: "manager_select",
+  //       placeholder: {
+  //         type: "plain_text",
+  //         text: "Select an item",
+  //         emoji: true
+  //       },
+  //       options: options
+  //     },
+  //     label: {
+  //       type: "plain_text",
+  //       text: "Select your Foundation Manager from the dropdown list",
+  //       emoji: true
+  //     }
+  //   }
+  // ];
+  // blocks = blocks.concat(blocks1);
   let modal = {
     type: "modal",
     callback_id: "application_form_modal",
