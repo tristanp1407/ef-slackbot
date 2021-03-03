@@ -552,23 +552,30 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
       course_id: foundation_managers.wimbledon_course_id
     };
 
-    console.log(metadata);
+    // console.log(metadata);
     // console.log("index.js:555 ", metadata);
     let res = await slackViews.requestWimbledonApproval(metadata);
     // console.log(res);
     // send message to Megan!!
     try {
       //get slack ID by email adress
-      const receiver_id = await app.client.users.lookupByEmail({
+      const receiverInfo = await app.client.users.lookupByEmail({
         token: context.botToken,
         email: foundation_managers.wimbledon_application_receiver_email
       });
-      // message send message to receiver through BookerBee
+      // message send message to reviewer through BookerBee
       const result = await app.client.chat.postMessage({
         token: context.botToken,
-        channel: receiver_id.user.id,
+        channel: receiverInfo.user.id,
         // text: message
         blocks: res
+      });
+      //send confirmation message to applicant 
+            const confirmMessage= await app.client.chat.postMessage({
+        token: context.botToken,
+        channel: metadata.user.id,
+        text: `Your application is being reviewed by <@${receiverInfo.user.id}>. Good luck! :tennis:`
+        // blocks: res
       });
       //console.log(result);
     } catch (error) {
