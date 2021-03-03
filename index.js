@@ -566,7 +566,8 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
       // message send message to reviewer through BookerBee
       const result = await app.client.chat.postMessage({
         token: context.botToken,
-        channel: receiverInfo.user.id,
+        channel: metadata.user.id,
+        // channel: receiverInfo.user.id,
         // text: message
         blocks: res
       });
