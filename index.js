@@ -44,9 +44,9 @@ let currentUser = {
 // });
 
 // When app home home opened
-app.event("app_home_opened", async ({ body, event, context,say }) => {
+app.event("app_home_opened", async ({ body, event, context, say }) => {
   console.log("app home opened");
-  
+
   try {
     const res = await app.client.users.info({
       token: context.botToken,
@@ -55,7 +55,7 @@ app.event("app_home_opened", async ({ body, event, context,say }) => {
 
     var view = await slackViews.homePage(res.user); //res.user.profile.email
     let newView = JSON.parse(view.view);
-    
+
     /* view.publish is the method that your app uses to push a view to the Home tab */
     const result = await app.client.views.publish({
       /* retrieves your xoxb token from context */
@@ -68,13 +68,14 @@ app.event("app_home_opened", async ({ body, event, context,say }) => {
   } catch (error) {
     console.error(error);
   }
-  
-  // if user not attending any courses yet, introduce the app!    
-  if (view.numCourses == 0){    
+
+  // if user not attending any courses yet, introduce the app!
+  if (view.numCourses == 0) {
     console.log("greeting message sent");
-    await say(`Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`
-  );}
-    
+    await say(
+      `Hello and welcome <@${event.user}>, I’m BookerBee! :bee: \n\n I am here to book your Essential Foundation course, by sending real time messages to your Foundation Manager (FM) for approvals. I will send you a message when your FM has either approved or rejected your request . If your course attendance has been approved, you can check the status of your booking (attending, waitlisted, rejected) by clicking the "my courses" button.  :smile:`
+    );
+  }
 });
 
 // Listens to incoming messages
@@ -189,6 +190,7 @@ app.action("manager_approval", async ({ body, ack, say }) => {
       view_id: body.view.id,
       trigger_id: body.trigger_id,
       /* retrieves your xoxb token from env */
+
       token: process.env.SLACK_BOT_TOKEN,
       /* the user that opened your app's app home */
       user_id: body.user,
@@ -470,30 +472,26 @@ app.action("wimbledon_1", async ({ body, ack, say }) => {
   }
 });
 
-// set a global variable to true when checkbox selcted
-app.action
-
-
-
 app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
   try {
     // Acknowledge the action
     await ack();
-    console.log("wimbledon_checkbox");
+    // console.log("wimbledon_checkbox");
 
     // check view state, to see if all 3 checkboxes are checked!
     let values = body.view.state.values;
     let id_ = Object.keys(body.view.state.values).toString();
     // console.log(id_);
     //get state ID
-    let selectedOptions = values[id_].wimbledon_checkbox_1.selected_options.length;
+    let selectedOptions =
+      values[id_].wimbledon_checkbox_1.selected_options.length;
     // let v = Object.entries(values);
     // v = v[0][1];
     // v = Object.values(v);
     // let manager_name = v[0]["selected_option"]["value"];
 
     // if all 3 checkboxes ticked, update view
-    if (selectedOptions === 3 ) {
+    if (selectedOptions === 3) {
       var newView = await slackViews.wimbledon2(body.user);
       newView = JSON.parse(newView);
 
@@ -517,6 +515,7 @@ app.action(/wimbledon_checkbox_.*/, async ({ body, ack, say }) => {
   }
 });
 
+// wimbledon
 app.view("application_form_modal", async ({ ack, body, view, context }) => {
   try {
     // Acknowledge the action
@@ -526,8 +525,8 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
     let v = Object.entries(values);
     let box_link = v[0][1]["box_link_input-action"]["value"];
     // get selected manager from modal
-    console.log(v);
-    let manager_name = v[1][1]["manager_select"]["selected_option"]["value"];
+    // console.log(v);
+    // let manager_name = v[1][1]["manager_select"]["selected_option"]["value"];
 
     // get user name and email
     try {
@@ -549,10 +548,32 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
       name: body.user.real_name,
       email: body.user.email,
       user: body.user,
-      box_link: box_link
+      box_link: box_link,
+      course_id: foundation_managers.wimbledon_course_id
     };
 
-    //console.log(result);
+    console.log(metadata);
+    // console.log("index.js:555 ", metadata);
+    let res = await slackViews.requestWimbledonApproval(metadata);
+    // console.log(res);
+    // send message to Megan!!
+    try {
+      //get slack ID by email adress
+      const receiver_id = await app.client.users.lookupByEmail({
+        token: context.botToken,
+        email: foundation_managers.wimbledon_application_receiver_email
+      });
+      // message send message to receiver through BookerBee
+      const result = await app.client.chat.postMessage({
+        token: context.botToken,
+        channel: receiver_id.user.id,
+        // text: message
+        blocks: res
+      });
+      //console.log(result);
+    } catch (error) {
+      //console.error(error);
+    }
   } catch (error) {
     console.error(error);
   }

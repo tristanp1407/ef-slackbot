@@ -431,7 +431,7 @@ const wimbledon2 = async user => {
       text: {
         type: "mrkdwn",
         text:
-          "Please download this <https://support.box.com|application form template> and fill it in.\n\n Enter the box link to your application form below. Make sure that the link is <https://support.box.com/hc/en-us/articles/360043696854-Inviting-Collaborators|accesible to your manager>!"
+          "Please enter the box link to your application form below. Make sure that the link is <https://support.box.com/hc/en-us/articles/360043696854-Inviting-Collaborators|accesible to your manager> and to <https://w3.ibm.com/bluepages/profile.html?uid=126771866|Megan McGuire>!"
       }
     },
     {
@@ -448,52 +448,52 @@ const wimbledon2 = async user => {
     }
   ];
 
-  let options = [];
-  for (const manager in foundation_managers.managers) {
-    let option = {
-      value: manager,
-      text: {
-        type: "plain_text",
-        text: manager,
-        emoji: true
-      }
-    };
-    options = options.concat(option);
-  }
+//   let options = [];
+//   for (const manager in foundation_managers.managers) {
+//     let option = {
+//       value: manager,
+//       text: {
+//         type: "plain_text",
+//         text: manager,
+//         emoji: true
+//       }
+//     };
+//     options = options.concat(option);
+//   }
 
-  let blocks1 = [
-    {
-      type: "divider"
-    },
-    {
-      type: "section",
-      text: {
-        type: "plain_text",
-        text:
-          "Select your Foundation Manager.\nWhen you submit this request, you will be added to the course waitlist and a message will be sent to your Foundation Manager requesting approval. \nWe'll let you know whether your Foundation Manager approves the request.",
-        emoji: true
-      }
-    },
-    {
-      type: "input",
-      element: {
-        type: "static_select",
-        action_id: "manager_select",
-        placeholder: {
-          type: "plain_text",
-          text: "Select an item",
-          emoji: true
-        },
-        options: options
-      },
-      label: {
-        type: "plain_text",
-        text: "Select your Foundation Manager from the dropdown list",
-        emoji: true
-      }
-    }
-  ];
-  blocks = blocks.concat(blocks1);
+  // let blocks1 = [
+  //   {
+  //     type: "divider"
+  //   },
+  //   {
+  //     type: "section",
+  //     text: {
+  //       type: "plain_text",
+  //       text:
+  //         "Enter your email address",
+  //       emoji: true
+  //     }
+  //   },
+  //   {
+  //     type: "input",
+  //     element: {
+  //       type: "static_select",
+  //       action_id: "manager_select",
+  //       placeholder: {
+  //         type: "plain_text",
+  //         text: "Select an item",
+  //         emoji: true
+  //       },
+  //       options: options
+  //     },
+  //     label: {
+  //       type: "plain_text",
+  //       text: "Select your Foundation Manager from the dropdown list",
+  //       emoji: true
+  //     }
+  //   }
+  // ];
+  // blocks = blocks.concat(blocks1);
   let modal = {
     type: "modal",
     callback_id: "application_form_modal",
@@ -504,7 +504,7 @@ const wimbledon2 = async user => {
     },
     submit: {
       type: "plain_text",
-      text: "Submit",
+      text: "Submit Application",
       emoji: true
     },
     close: {
@@ -521,42 +521,48 @@ const requestWimbledonApproval = async metadata => {
   try {
     let blocks = [
       {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: "You have a new request."
+        }
+      },
+            {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: "*You have a new request:*\n$name has made an approval request"
-          //text: `*You have a new request:*\n<@${metadata.name}> has made an approval request`
+          text: `<@${metadata.user.id}> has applied to Wimbledon. Click <${metadata.box_link}\|here> to view their application files. `
         }
       }
     ];
-    let courseDetailBlock = await getCourseDetailBlock(metadata.id);
-    blocks = blocks.concat(JSON.parse(courseDetailBlock));
+    // let courseDetailBlock = await getCourseDetailBlock(metadata.id);
+    // blocks = blocks.concat(JSON.parse(courseDetailBlock));
     // append response buttons
-    blocks = blocks.concat({
-      type: "actions",
-      elements: [
-        {
-          type: "button",
-          text: {
-            type: "plain_text",
-            emoji: true,
-            text: "Approve"
-          },
-          style: "primary",
-          action_id: "manager_approve"
-        },
-        {
-          type: "button",
-          text: {
-            type: "plain_text",
-            emoji: true,
-            text: "Deny"
-          },
-          style: "danger",
-          action_id: "manager_deny"
-        }
-      ]
-    });
+    // blocks = blocks.concat({
+    //   type: "actions",
+    //   elements: [
+    //     {
+    //       type: "button",
+    //       text: {
+    //         type: "plain_text",
+    //         emoji: true,
+    //         text: "Approve"
+    //       },
+    //       style: "primary",
+    //       action_id: "manager_approve"
+    //     },
+    //     {
+    //       type: "button",
+    //       text: {
+    //         type: "plain_text",
+    //         emoji: true,
+    //         text: "Deny"
+    //       },
+    //       style: "danger",
+    //       action_id: "manager_deny"
+    //     }
+    //   ]
+    // });
     blocks = JSON.stringify(blocks);
     blocks = blocks.replace("$name", metadata.name);
     return blocks;
@@ -577,7 +583,6 @@ const homePage = async user => {
   try {
     let response = await calendarAPI.getMyCourses(email);
     numberOfCoursesAttending = response.data.rows.length;
-    console.log("Slackviews 552:  ", numberOfCoursesAttending);
   } catch (error) {
     console.error(error);
   }

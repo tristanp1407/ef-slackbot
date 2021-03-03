@@ -12,9 +12,15 @@ const managers = {
   Johnny: "johnny.murphy@ibm.com"
 };
 
+
+let wimbledon_application_receiver_email= "tristan.plet@ibm.com";
+
+
+
 let admin_email = "essfnd@uk.ibm.com";
 let wimbledon_course_id =""
 
 module.exports.managers = managers;
 module.exports.admin_email = admin_email;
 module.exports.wimbledon_course_id  = wimbledon_course_id;
+module.exports.wimbledon_application_receiver_email = wimbledon_application_receiver_email;
