@@ -45,7 +45,6 @@ let currentUser = {
 
 // When app home home opened
 app.event("app_home_opened", async ({ body, event, context, say }) => {
-  console.log("app home opened");
 
   try {
     const res = await app.client.users.info({
@@ -53,6 +52,7 @@ app.event("app_home_opened", async ({ body, event, context, say }) => {
       user: event.user
     });
 
+    console.log("app home opened by", res.user.name);
     var view = await slackViews.homePage(res.user); //res.user.profile.email
     let newView = JSON.parse(view.view);
 
@@ -563,16 +563,18 @@ app.view("application_form_modal", async ({ ack, body, view, context }) => {
         token: context.botToken,
         email: foundation_managers.wimbledon_application_receiver_email
       });
+      
+      console.log("Wimbledon application sent to", receiverInfo.user.name);
       // message send message to reviewer through BookerBee
       const result = await app.client.chat.postMessage({
         token: context.botToken,
-        channel: metadata.user.id,
-        // channel: receiverInfo.user.id,
+        //channel: metadata.user.id,
+        channel: receiverInfo.user.id,
         // text: message
         blocks: res
       });
-      //send confirmation message to applicant 
-            const confirmMessage= await app.client.chat.postMessage({
+      //send confirmation message to applicant
+      const confirmMessage = await app.client.chat.postMessage({
         token: context.botToken,
         channel: metadata.user.id,
         text: `Your application is being reviewed by <@${receiverInfo.user.id}>. Good luck! :tennis:`
