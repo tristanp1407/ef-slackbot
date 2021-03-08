@@ -13,7 +13,7 @@ const managers = {
 };
 
 
-let wimbledon_application_receiver_email= "tristan.plet@ibm.com";
+let wimbledon_application_receiver_email= "megan.mcguire@ibm.com";
 
 
 
