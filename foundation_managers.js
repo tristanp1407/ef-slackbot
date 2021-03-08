@@ -14,7 +14,7 @@ const managers = {
 
 
 let wimbledon_application_receiver_email= "megan.mcguire@ibm.com";
-
+//let wimbledon_application_receiver_email= "zoe.osorio@gmail.com";
 
 
 let admin_email = "essfnd@uk.ibm.com";
